@@ -6,7 +6,7 @@ Web: [Inove](http://inove.com.ar)
 # Estadística del Fútbol [Python_2]
 
 ----------------------------------------------------------------------------------------------------------------
-#27/9/2020:
+#27/9/2020
 __Armado de la estructura general de la API, se ha añadido:
 - app.py
 - config.py
