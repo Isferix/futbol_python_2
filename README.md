@@ -7,6 +7,7 @@ Web: [Inove](http://inove.com.ar)
 
 ----------------------------------------------------------------------------------------------------------------
 #27/9/2020
+
 __Armado de la estructura general de la API, se ha añadido:
 - app.py
 - config.py
