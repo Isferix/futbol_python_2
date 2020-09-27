@@ -8,7 +8,7 @@ Web: [Inove](http://inove.com.ar)
 ----------------------------------------------------------------------------------------------------------------
 #27/9/2020
 
-__Armado de la estructura general de la API, se ha añadido:
+_Armado de la estructura general de la API, se ha añadido:
 - app.py
 - config.py
 - heart.py
@@ -21,8 +21,7 @@ con nuevas funcionalidades en los siguientes commits
 - \static
 - \templates
 
-En estas carpetas se encuentran los recursos para renderizar las paginas y facilitar
-interacciones con bases de datos
+En estas carpetas se encuentran los recursos para renderizar las paginas y facilitar interacciones con bases de datos
 ----------------------------------------------------------------------------------------------------------------
 
 
