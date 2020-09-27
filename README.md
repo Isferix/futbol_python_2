@@ -7,8 +7,7 @@ Web: [Inove](http://inove.com.ar)
 
 ----------------------------------------------------------------------------------------------------------------
 #27/9/2020:
-__-Armado de la estructura general de la API:
- Se ha añadido:
+__-Armado de la estructura general de la API, se ha añadido:
 - app.py
 - config.py
 - heart.py
