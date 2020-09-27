@@ -4,6 +4,30 @@ info@inove.com.ar\
 Web: [Inove](http://inove.com.ar)
 
 # Estadística del Fútbol [Python_2]
+
+----------------------------------------------------------------------------------------------------------------
+#27/9/2020:
+__-Armado de la estructura general de la API:
+ Se ha añadido:
+- app.py
+- config.py
+- heart.py
+- schema.sql
+
+Estos archivos conforman la estructura general de la API y seran actualizados
+con nuevas funcionalidades en los siguientes commits	
+
+- \modulos\mySqlModule
+- \static
+- \templates
+
+En estas carpetas se encuentran los recursos para renderizar las paginas y facilitar
+interacciones con bases de datos
+----------------------------------------------------------------------------------------------------------------
+
+
+
+
 El programa consiste en realizar cálculos y estadística del fútbol internacional utilizando registros desde 1874. El programa consultará al usuario qué tipo de información desea obtener de un determinado equipo (ver detalle en salida del sistema).
 
 Este proyecto está basado en el proyecto de Python Inicial:\
@@ -36,3 +60,6 @@ Estos temas se discuten en el campus del curso en el foro correspondiente al pro
 
 # Consultas
 alumnos@inove.com.ar
+
+
+
