@@ -16,7 +16,12 @@ __version__ = "1.1"
 
 import os
 from modulos import mySqlModule as SQL
+from collections import OrderedDict
+
 import sqlite3
+import csv
+
+
 
 db = {}
 
@@ -30,37 +35,98 @@ def fill_database(c=None):
 
         c.executescript(open(schema_path_name, "r").read())
 
+
+    def fetch_data():
+        """
+        Recorre un archivo csv y recolecta datos\n
+        Return: Devuelve una lista con tuplas
+        """
+        with open(db['dataset'], encoding="utf-8") as csvfile:
+            dataset = list(csv.DictReader(csvfile))
+
+            # Clasificacion de datos
+            city = []
+            country = []
+            tournament = []
+            match = []
+            for i in range(len(dataset)):
+                [country.append((ciudad,)) for ciudad in [dataset[i]['home_team'], dataset[i]['away_team'], dataset[i]['country']]]
+
+                city.append((dataset[i]['city'],))
+
+                tournament.append((
+                    dataset[i]['tournament'],
+                    dataset[i]['neutral']
+                ))
+
+                match.append((
+                    dataset[i]['date'],
+                    country[0+(i*3)],
+                    country[1+(i*3)],
+                    dataset[i]['home_score'],
+                    dataset[i]['away_score'],
+                    tournament[i][0],
+                    city[i],
+                    country[2+(i*3)]
+                ))
+
+            # Purga de datos repetidos
+
+            # Elegi purgar los datos despues de haberlos clasificados porque si lo hago al momento de clasificarlos
+            # Las adiciones referenciales de listas que hago en match no funcionarian por que no existirian los 
+            # indices buscados al borrarse los duplicados:
+            #   country[0+(i*3)], country[1+(i*3)], etc...
+            # Por el contrario, si no uso las adiciones referenciales estaria sobreañadiendo informacion,
+            # es decir, repetiria expresiones como dataset[i][...] Esto haria que en la ejecucion se busque el mismo dato 2 veces o mas,
+            # lo cual es ineficiente, para ello reciclo los datos que añadi antes, puesto que es mas facil recorrer una lista corta
+            # que volver a recorrer el dataset entero
+
+            clean_city = []
+            [clean_city.append(ciudad) for ciudad in city if ciudad not in clean_city]
+
+            clean_country = []
+            [clean_country.append(pais) for pais in country if pais not in clean_country]
+
+            clean_tournament = []
+            [clean_tournament.append(torneo) for torneo in tournament if torneo not in clean_tournament]
+
+            # Los partidos son irrepetibles, es imposible que exista un partido que haya ocurrido en la misma fecha entre 2 mismos paises
+            # Por lo que no es necesario purgarlos (Dando por hecho que el .csv esta excento de errores)
+
+            return {'city': clean_city, 'country': clean_country, 'tournament': clean_tournament, 'match': match}
+
+
     @SQL.connect(db['database'])
-    def insert(c=c):
-        pass
+    def insert(dataset, c=c):
+        c.executemany(
+            """INSERT INTO ciudad(city)
+            VALUES (?);""", dataset['city']
+        )
+
+        c.executemany(
+            """INSERT INTO pais(country)
+            VALUES (?)""", dataset['country'])
+
+        print('Operacion 2 efectuada')
+        c.executemany(
+            """INSERT INTO torneo(tournament, neutral)
+            VALUES (?, ?)""", dataset['tournament'])
+
+        # print('Operacion 3 efectuada')
+        # c.executemany("""
+        # INSERT INTO partido(date, fk_home_team_pais, fk_away_team_pais, home_score, away_score, fk_tournmanet_torneo, fk_city_pais, fk_country_pais)
+        # SELECT ?, ?, ?, ?, ?, ?, ?, ? 
+        # FROM partido 
+        # INNER JOIN pais AS p1 ON partido.fk_home_team_pais=p1.id 
+        # INNER JOIN pais AS p2 ON partido.fk_away_team_pais=p2.id 
+        # INNER JOIN pais AS p3 ON partido.fk_country_pais=p3.id
+        # INNER JOIN torneo AS t ON partido.fk_tournmanet_torneo=t.id;""", dataset['match'])
     
     create_schema()
-    insert()
 
+    dataset = fetch_data()
 
-def create_schema():
-
-    # Conectarnos a la base de datos
-    # En caso de que no exista el archivo se genera
-    # como una base de datos vacia
-    conn = sqlite3.connect(db['database'])
-
-    # Crear el cursor para poder ejecutar las querys
-    c = conn.cursor()
-
-    # Obtener el path real del archivo de schema
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    schema_path_name = os.path.join(script_path, db['schema'])
-
-    # Crar esquema desde archivo
-    c.executescript(open(schema_path_name, "r").read())
-
-    # Para salvar los cambios realizados en la DB debemos
-    # ejecutar el commit, NO olvidarse de este paso!
-    conn.commit()
-
-    # Cerrar la conexión con la base de datos
-    conn.close()
+    insert(dataset)
 
 
 def insert(time, name, heartrate):

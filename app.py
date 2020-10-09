@@ -90,7 +90,7 @@ def reset():
 @app.route("/pais")
 def pais():
     try:
-        #return render_template('tabla.html')
+        pass #return render_template('tabla.html')
     except:
         return jsonify({'trace': traceback.format_exc()})
 
@@ -260,6 +260,6 @@ if __name__ == '__main__':
 
     heart.fill_database()
 
-     app.run(host=server['host'],
-             port=server['port'],
-             debug=True)
+    #  app.run(host=server['host'],
+    #          port=server['port'],
+    #          debug=True)

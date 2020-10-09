@@ -6,9 +6,24 @@ Web: [Inove](http://inove.com.ar)
 # Estadística del Fútbol [Python_2]
 
 ----------------------------------------------------------------------------------------------------------------
-#27/9/2020
+#9/10/2020:
+__-Armado de la estructura de las bases de datos de los partidos de futbol
+ Se ha configurado:
+- schema.sql
 
-_Armado de la estructura general de la API, se ha añadido:
+Por otro lado, el codigo encargado de rellenar la tabla se encuentra en:
+- heart.py
+
+ERRORES:
+File: heart.py line 115-122
+La sentencia encargada de rellenar la tabla partido no funciona correctamente
+----------------------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------------------
+#27/9/2020:
+__-Armado de la estructura general de la API:
+ Se ha añadido:
 - app.py
 - config.py
 - heart.py
@@ -21,7 +36,8 @@ con nuevas funcionalidades en los siguientes commits
 - \static
 - \templates
 
-En estas carpetas se encuentran los recursos para renderizar las paginas y facilitar interacciones con bases de datos
+En estas carpetas se encuentran los recursos para renderizar las paginas y facilitar
+interacciones con bases de datos
 ----------------------------------------------------------------------------------------------------------------
 
 
