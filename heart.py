@@ -20,15 +20,16 @@ from collections import OrderedDict
 
 import sqlite3
 import csv
+import datetime
 
 
 
 db = {}
 
-def fill_database(c=None):
+def fill_database(c=None, conn=None):
     
     @SQL.connect(db['database'])
-    def create_schema(c=c):
+    def create_schema(c=c, conn=None):
 
         script_path = os.path.dirname(os.path.realpath(__file__))
         schema_path_name = os.path.join(script_path, db['schema'])
@@ -44,104 +45,45 @@ def fill_database(c=None):
         with open(db['dataset'], encoding="utf-8") as csvfile:
             dataset = list(csv.DictReader(csvfile))
 
-            # Clasificacion de datos
-            city = []
-            country = []
-            tournament = []
-            match = []
-            for i in range(len(dataset)):
-                [country.append((ciudad,)) for ciudad in [dataset[i]['home_team'], dataset[i]['away_team'], dataset[i]['country']]]
+            # Desempaquetando la info
+            data = [(
+                x['date'],
+                x['home_team'],
+                x['away_team'],
+                x['home_score'],
+                x['away_score'],
+                x['tournament'],
+                x['city'],
+                x['country'],
+                x['neutral']) for x in dataset]
 
-                city.append((dataset[i]['city'],))
-
-                tournament.append((
-                    dataset[i]['tournament'],
-                    dataset[i]['neutral']
-                ))
-
-                match.append((
-                    dataset[i]['date'],
-                    country[0+(i*3)],
-                    country[1+(i*3)],
-                    dataset[i]['home_score'],
-                    dataset[i]['away_score'],
-                    tournament[i][0],
-                    city[i],
-                    country[2+(i*3)]
-                ))
-
-            # Purga de datos repetidos
-
-            # Elegi purgar los datos despues de haberlos clasificados porque si lo hago al momento de clasificarlos
-            # Las adiciones referenciales de listas que hago en match no funcionarian por que no existirian los 
-            # indices buscados al borrarse los duplicados:
-            #   country[0+(i*3)], country[1+(i*3)], etc...
-            # Por el contrario, si no uso las adiciones referenciales estaria sobreañadiendo informacion,
-            # es decir, repetiria expresiones como dataset[i][...] Esto haria que en la ejecucion se busque el mismo dato 2 veces o mas,
-            # lo cual es ineficiente, para ello reciclo los datos que añadi antes, puesto que es mas facil recorrer una lista corta
-            # que volver a recorrer el dataset entero
-
-            clean_city = []
-            [clean_city.append(ciudad) for ciudad in city if ciudad not in clean_city]
-
-            clean_country = []
-            [clean_country.append(pais) for pais in country if pais not in clean_country]
-
-            clean_tournament = []
-            [clean_tournament.append(torneo) for torneo in tournament if torneo not in clean_tournament]
-
-            # Los partidos son irrepetibles, es imposible que exista un partido que haya ocurrido en la misma fecha entre 2 mismos paises
-            # Por lo que no es necesario purgarlos (Dando por hecho que el .csv esta excento de errores)
-
-            return {'city': clean_city, 'country': clean_country, 'tournament': clean_tournament, 'match': match}
+            # Agregando los ganadores y encapsulando la info en tuplas
+            refined_data = []
+            for i in data:
+                refined_row = []
+                [refined_row.append(x) for x in i]
+                if int(i[3]) > int(i[4]):
+                    refined_row.append(1)
+                elif int(i[3]) < int(i[4]):
+                    refined_row.append(0)
+                else:
+                    refined_row.append(2)
+                refined_data.append(tuple(refined_row))
+            return refined_data
 
 
     @SQL.connect(db['database'])
-    def insert(dataset, c=c):
+    def insert(dataset, c=None, conn=None):
         c.executemany(
-            """INSERT INTO ciudad(city)
-            VALUES (?);""", dataset['city']
-        )
+            """INSERT INTO partido(date,home_team,away_team,home_score,away_score,tournament,city,country,neutral,result)
+            VALUES(?,?,?,?,?,?,?,?,?,?);""", dataset)
 
-        c.executemany(
-            """INSERT INTO pais(country)
-            VALUES (?)""", dataset['country'])
-
-        print('Operacion 2 efectuada')
-        c.executemany(
-            """INSERT INTO torneo(tournament, neutral)
-            VALUES (?, ?)""", dataset['tournament'])
-
-        # print('Operacion 3 efectuada')
-        # c.executemany("""
-        # INSERT INTO partido(date, fk_home_team_pais, fk_away_team_pais, home_score, away_score, fk_tournmanet_torneo, fk_city_pais, fk_country_pais)
-        # SELECT ?, ?, ?, ?, ?, ?, ?, ? 
-        # FROM partido 
-        # INNER JOIN pais AS p1 ON partido.fk_home_team_pais=p1.id 
-        # INNER JOIN pais AS p2 ON partido.fk_away_team_pais=p2.id 
-        # INNER JOIN pais AS p3 ON partido.fk_country_pais=p3.id
-        # INNER JOIN torneo AS t ON partido.fk_tournmanet_torneo=t.id;""", dataset['match'])
     
     create_schema()
 
     dataset = fetch_data()
 
     insert(dataset)
-
-
-def insert(time, name, heartrate):
-    conn = sqlite3.connect(db['database'])
-    c = conn.cursor()
-
-    values = [time, name, heartrate]
-
-    c.execute("""
-        INSERT INTO heartrate (time, name, value)
-        VALUES (?,?,?);""", values)
-
-    conn.commit()
-    # Cerrar la conexión con la base de datos
-    conn.close()
 
 
 def dict_factory(cursor, row):
@@ -153,31 +95,49 @@ def dict_factory(cursor, row):
     return d
 
 
-def report(limit=0, offset=0, dict_format=False):
-    # Conectarse a la base de datos
-    conn = sqlite3.connect(db['database'])
-    if dict_format is True:
-        conn.row_factory = dict_factory
-    c = conn.cursor()
+def report_countrys(limit=0, offset=0, dict_format=False):
+    @SQL.connect(db['database'])
+    def function(limit, offset, c=None, conn=None):
+        if dict_format is True:
+            conn.row_factory = dict_factory
 
-    query = 'SELECT h_order.time, h_order.name, h_order.value as last_heartrate, \
-             COUNT(name) as records \
-             FROM (SELECT time, name, value FROM heartrate ORDER BY time) as h_order \
-             GROUP BY name ORDER BY time'
+        query = 'SELECT home_team, away_team, result FROM partido ORDER BY home_team'
 
-    if limit > 0:
-        query += ' LIMIT {}'.format(limit)
+        if limit > 0:
+            query += ' LIMIT {}'.format(limit)
         if offset > 0:
             query += ' OFFSET {}'.format(offset)
 
-    query += ';'
+        query += ';'
 
-    c.execute(query)
-    query_results = c.fetchall()
+        c.execute(query)
+        query_results = c.fetchall()
+        
+        wins_draws_loses_dict = {}
+        for row in query_results:
+            equipo_1 = row[0]
+            equipo_2 = row[1]
+            ganador = row[2]
+            if equipo_1 not in wins_draws_loses_dict:
+                wins_draws_loses_dict[equipo_1] = [0, 0, 0]
+            if equipo_2 not in wins_draws_loses_dict:
+                wins_draws_loses_dict[equipo_2] = [0, 0, 0]
 
-    # Cerrar la conexión con la base de datos
-    conn.close()
-    return query_results
+            #Punteros
+            pe_1 = wins_draws_loses_dict[equipo_1] # Equipo 1
+            pe_2 = wins_draws_loses_dict[equipo_2] # Equipo 2
+            if ganador == 1:
+                wins_draws_loses_dict[equipo_1] = [pe_1[0]+1, pe_1[1], pe_1[2]]
+                wins_draws_loses_dict[equipo_2] = [pe_2[0], pe_2[1], pe_2[2]+1]
+            elif ganador == 0:
+                wins_draws_loses_dict[equipo_1] = [pe_1[0], pe_1[1], pe_1[2]+1]
+                wins_draws_loses_dict[equipo_2] = [pe_2[0]+1, pe_2[1], pe_2[2]]
+            else:
+                wins_draws_loses_dict[equipo_1] = [pe_1[0], pe_1[1]+1, pe_1[2]]
+                wins_draws_loses_dict[equipo_2] = [pe_2[0], pe_2[1]+1, pe_2[2]]
+        wins_draws_loses_list = [{'country': x[0], 'wins': x[1][0], 'draws': x[1][1], 'loses': x[1][2]} for x in wins_draws_loses_dict.items()]
+        return wins_draws_loses_list
+    return function(limit, offset)
 
 
 def chart(name):

@@ -14,27 +14,25 @@ function view(name) {
 	window.location = historico_url
 }
 
-var tabla_url = url + '/tabla'
+var tabla_url = url + '/tabla?limit=4'
 
-$.get(tabla_url, function(personas) {	
+$.get(tabla_url, function(paises) {	
 
 	var table_data = '';
-	size = personas.length
+	size = paises.length
 
 	for(var i= 0; i < size; i++)
 	{
-		name = personas[i]['name'];
-		last_record_time = personas[i]['time'];
-		last_record_value = personas[i]['last_heartrate'];
-		record_count = personas[i]['records'];
+		pais = paises[i]['country'];
+		ganados = personas[i]['wins'];
+		empatados = personas[i]['draws'];
+		perdidos = personas[i]['loses'];
 
 		table_data += '<tr>';
-		table_data += '<td>'+name+'</td>';
-		table_data += '<td>'+last_record_time+'</td>';
-		table_data += '<td>'+last_record_value+'</td>';
-		table_data += '<td>'+record_count+'</td>';
-		//table_data += '<td><a href="#" class="btn-view" onclick="view(\'' + name + '\')">Ver</a></td>';
-		table_data += '<td><a href="#" class="btn-view" onclick="view(\'' + name + '\')"><span style="font-size: 3em; color: Tomato;"><i class="fas fa-search"></i></span></a></td>';
+		table_data += '<td>'+pais+'</td>';
+		table_data += '<td>'+ganados+'</td>';
+		table_data += '<td>'+empatados+'</td>';
+		table_data += '<td>'+perdidos+'</td>';
 		table_data += '</tr>';
 
 	}

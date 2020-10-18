@@ -6,6 +6,27 @@ Web: [Inove](http://inove.com.ar)
 # Estadística del Fútbol [Python_2]
 
 ----------------------------------------------------------------------------------------------------------------
+#18/10/2020:
+Rediseño total de la base de datos SQL
+- schema.sql
+
+El codigo encargado de rellenar la tabla se encuentra en:
+- heart.py.fill_database
+
+Se ha programado la ruta paises/tabla y paises
+-app.py
+
+CORRECION DE ERRORES:
+- Al resideñar el esquema SQL se ha facilitado el insertar datos en la tabla
+
+ERRORES:
+File: app.py line 93
+La renderizacion de la tabla falla, el archivo JavaScript (/static/js/tabla.js) no limita correctamente
+la cantidad de datos a mostrar y renderiza la tabla con todos los partidos que hay en la tabla
+----------------------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------------------
 #9/10/2020:
 __-Armado de la estructura de las bases de datos de los partidos de futbol
  Se ha configurado:
